@@ -221,8 +221,8 @@ class devicestate:
             val.append(StateValue('RightAscension', rade.get_ra()))
             val.append(StateValue('SideOfPier', 0 ))
             val.append(StateValue('SiderealTime',rade.get_siderealtime()))
-            val.append(StateValue('Slewing', rade.si_slewing()))
-            val.append(StateValue('Tracking', not rade.isSlewing()))
+            val.append(StateValue('Slewing', rade.is_slewing()))
+            val.append(StateValue('Tracking', not rade.is_slewing()))
             val.append(StateValue('UTCDate', rade.utcdate()))
             val.append(StateValue('TimeStamp', rade.utcdate()))
             # ----------------------

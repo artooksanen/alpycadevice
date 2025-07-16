@@ -72,6 +72,9 @@ from config import Config
 from discovery import DiscoveryResponder
 from shr import set_shr_logger
 
+# Arto lisäsi tämän 2025-07-11
+from falcon_cors import CORS
+
 #########################
 # FOR EACH ASCOM DEVICE #
 #########################
@@ -244,7 +247,12 @@ def main():
     # MAIN HTTP/REST API ENGINE (FALCON)
     # ----------------------------------
     # falcon.App instances are callable WSGI apps
-    falc_app = App()
+    falc_app = App(cors_enable=True)
+
+    # Enable CORS
+    #cors = CORS(allow_all_origins=True, allow_all_headers=True, allow_methods_list=['GET', 'POST'],)
+    #falc_app.add_middleware(cors.middleware)
+
     #
     # Initialize routes for each endpoint the magic way
     #

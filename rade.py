@@ -3,6 +3,7 @@ import time
 import hor
 import arduino
 import math
+from LCD import LCD
 
 epookki0=epookki1=2000.0
 t=0.0
@@ -21,6 +22,10 @@ counterstep_ra=(1.0)/3600.0    # tuntia
 counterstep_de=(10.0)/3600.0       # astetta
 ra0=0
 de0=0
+# Initialize the LCD with specific parameters: Raspberry Pi revision, I2C address, and backlight status
+lcd = LCD(2, 0x3f, True)  # Using Raspberry Pi revision 2 and above, I2C address 0x3f, backlight enabled
+lastmessage=["","",""]
+
 
 def connect():
   global counter_ra0,counter_de0
@@ -91,6 +96,8 @@ def get_ra():
     ra=ra+24
   if ra>24:
     ra=ra-24
+  suunta=0
+  nopeus=0
   if ra_slewing:
     delta=target_ra-ra
     if delta>12:
@@ -114,6 +121,17 @@ def get_ra():
       ra_slewing=False
       suunta=0
     arduino.setspeed_ra(suunta,nopeus)
+  suuntamerkit=""
+  if suunta == -1:
+    suuntamerkki="<"
+    for i in range(nopeus):
+      suuntamerkit=suuntamerkit+suuntamerkki
+  if suunta == 1:
+    suuntamerkki=">"
+    for i in range(nopeus):
+      suuntamerkit=suuntamerkit+suuntamerkki
+  message="ra: {} {}".format(hms(ra),suuntamerkit)
+  lcd_message(message,1)
   return ra
 
 def get_de():
@@ -123,6 +141,8 @@ def get_de():
   dn2=10.0/60.0 # keskinopeus
   dn3=60.0/60.0 # suuri nopeus
   de=de0+(arduino.getcounter_de()-counter_de0)*counterstep_de
+  suunta=0
+  nopeus=0
   if de_slewing:
     delta=target_de-de
     if delta<0:
@@ -140,6 +160,18 @@ def get_de():
       de_slewing=False
       suunta=0
     arduino.setspeed_de(suunta,nopeus)
+  suuntamerkit=""
+  if suunta == -1:
+    suuntamerkki="<"
+    for i in range(nopeus):
+      suuntamerkit=suuntamerkit+suuntamerkki
+  suuntamerkki="0"
+  if suunta == 1:
+    suuntamerkki=">"
+    for i in range(nopeus):
+      suuntamerkit=suuntamerkit+suuntamerkki
+  message="dec:  {} {}".format(sam(de),suuntamerkit)
+  lcd_message(message,2)
   return de
 
 def set_ra(r):
@@ -173,4 +205,39 @@ def abortslew():
 def is_slewing():
   return ra_slewing or de_slewing
 
+def hms(h):
+    hh=math.floor(h)
+    mm=math.floor((h-hh)*60.0)
+    ss=math.floor((h-hh-mm/60.0)*3600.0)
+    hhs=str(hh)
+    if(hh<10):
+        hhs="0"+hhs
+    mms=str(mm)
+    if(mm<10):
+        mms="0"+mms
+    sss=str(ss)
+    if(ss<10):
+        sss="0"+sss
+    return hhs+" "+mms+" "+sss
 
+def sam(d):
+    s="+"
+    if d<0:
+       d=-d
+       s="-"
+    dd=math.floor(d)
+    mm=math.floor((d-dd)*60.0)
+    dds=str(dd)
+    if dd<10:
+        dds="0"+dds
+    mms=str(mm)
+    if mm<10:
+        mms="0"+mms
+    return s+dds+" "+mms
+
+def lcd_message(s,l):
+#  print("lastmessage", l, lastmessage[l])
+  if lastmessage[l]!=s:
+      lastmessage[l]=s
+      lcd.message(s, l)
+  
