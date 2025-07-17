@@ -9,8 +9,12 @@ import sys
 #lrwxrwxrwx 1 root root 13 Jun 28 11:17 platform-3f980000.usb-usb-0:1.2:1.0 -> ../../ttyACM0
 #lrwxrwxrwx 1 root root 13 Jun 28 11:17 platform-3f980000.usb-usb-0:1.4:1.0 -> ../../ttyACM1
 
+#oksanen@raspberrypi:~/AlpycaDevice/device $ ls /dev/serial/by-path/ -l
+#lrwxrwxrwx 1 root root 13 Jul 16 17:27 platform-3f980000.usb-usb-0:1.1.2:1.0 -> ../../ttyACM1
+#lrwxrwxrwx 1 root root 13 Jul 16 17:27 platform-3f980000.usb-usb-0:1.3:1.0 -> ../../ttyACM0
 
-serial_port = '/dev/ttyACM0'
+
+serial_port = '/dev/ttyACM1'
 baud_rate = 9600
 connection=False
 
@@ -148,9 +152,9 @@ if __name__ == "__main__":
     c=getcounter_de()
     print("de counter:",c)
 
-    disconnect()
+#    disconnect()
 
-    exit()
+#    exit()
 
     print("slewing 10 seconds - speed 1")
     setspeed_ra(1,1)
