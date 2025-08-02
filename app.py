@@ -217,37 +217,36 @@ def falcon_uncaught_exception_handler(req: Request, resp: Response, ex: BaseExce
 # ===========
 # APP STARTUP
 # ===========
-def main():
-    """ Application startup"""
+""" Application startup"""
 
-    logger = log.init_logging()
-    # Share this logger throughout
-    log.logger = logger
-    exceptions.logger = logger
+logger = log.init_logging()
+# Share this logger throughout
+log.logger = logger
+exceptions.logger = logger
 ###    telescope.start_telescope_device(logger)
-    discovery.logger = logger
-    set_shr_logger(logger)
+discovery.logger = logger
+set_shr_logger(logger)
 
     #########################
     # FOR EACH ASCOM DEVICE #
     #########################
-    telescope.logger = logger
+telescope.logger = logger
 
     # -----------------------------
     # Last-Chance Exception Handler
     # -----------------------------
-    sys.excepthook = custom_excepthook
+sys.excepthook = custom_excepthook
 
     # ---------
     # DISCOVERY
     # ---------
-    _DSC = DiscoveryResponder(Config.ip_address, Config.port)
+_DSC = DiscoveryResponder(Config.ip_address, Config.port)
 
     # ----------------------------------
     # MAIN HTTP/REST API ENGINE (FALCON)
     # ----------------------------------
     # falcon.App instances are callable WSGI apps
-    falc_app = App(cors_enable=True)
+falc_app = App(cors_enable=True)
 
     # Enable CORS
     #cors = CORS(allow_all_origins=True, allow_all_headers=True, allow_methods_list=['GET', 'POST'],)
@@ -259,30 +258,34 @@ def main():
     #########################
     # FOR EACH ASCOM DEVICE #
     #########################
-    init_routes(falc_app, 'telescope', telescope)
+init_routes(falc_app, 'telescope', telescope)
     #
     # Initialize routes for Alpaca support endpoints
-    falc_app.add_route('/management/apiversions', management.apiversions())
-    falc_app.add_route(f'/management/v{API_VERSION}/description', management.description())
-    falc_app.add_route(f'/management/v{API_VERSION}/configureddevices', management.configureddevices())
-    falc_app.add_route('/setup', setup.svrsetup())
-    falc_app.add_route(f'/setup/v{API_VERSION}/telescope/{{devnum}}/setup', setup.devsetup())
+falc_app.add_route('/management/apiversions', management.apiversions())
+falc_app.add_route(f'/management/v{API_VERSION}/description', management.description())
+falc_app.add_route(f'/management/v{API_VERSION}/configureddevices', management.configureddevices())
+falc_app.add_route('/setup', setup.svrsetup())
+falc_app.add_route(f'/setup/v{API_VERSION}/telescope/{{devnum}}/setup', setup.devsetup())
 
     #
     # Install the unhandled exception processor. See above,
     #
-    falc_app.add_error_handler(Exception, falcon_uncaught_exception_handler)
+falc_app.add_error_handler(Exception, falcon_uncaught_exception_handler)
 
     # ------------------
     # SERVER APPLICATION
     # ------------------
     # Using the lightweight built-in Python wsgi.simple_server
-    with make_server(Config.ip_address, Config.port, falc_app, handler_class=LoggingWSGIRequestHandler) as httpd:
-        logger.info(f'==STARTUP== Serving on {Config.ip_address}:{Config.port}. Time stamps are UTC.')
-        # Serve until process is killed
-        httpd.serve_forever()
+##    with make_server(Config.ip_address, Config.port, falc_app, handler_class=LoggingWSGIRequestHandler) as httpd:
+##        logger.info(f'==STARTUP== Serving on {Config.ip_address}:{Config.port}. Time stamps are UTC.')
+##        # Serve until process is killed
+##        httpd.serve_forever()
 
 # ========================
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+#    main()
 # ========================
+#
+# käynnistyskomento:
+#   gunicorn -b 0.0.0.0:5555 -k gthread --threads 1 --timeout 0 app:falc_app
+#

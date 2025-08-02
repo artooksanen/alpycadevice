@@ -23,7 +23,11 @@ counterstep_de=(10.0)/3600.0       # astetta
 ra0=0
 de0=0
 # Initialize the LCD with specific parameters: Raspberry Pi revision, I2C address, and backlight status
-lcd = LCD(2, 0x3f, True)  # Using Raspberry Pi revision 2 and above, I2C address 0x3f, backlight enabled
+try:
+  lcd = LCD(2, 0x3f, True)  # Using Raspberry Pi revision 2 and above, I2C address 0x3f, backlight enabled
+except:
+  lcd = None
+
 lastmessage=["","",""]
 
 
@@ -33,8 +37,8 @@ def connect():
   arduino.connect()
   print("rade.connect(): arduino.connect() <-")
   print("rade.connect(): arduino.get_counters) ->")
-  counter_ra0=0 #arduino.getcounter_ra()
-  counter_de0=0 #arduino.getcounter_de()
+  counter_ra0=arduino.getcounter_ra()
+  counter_de0=arduino.getcounter_de()
   print("rade.connect(): arduino.get_counters <-")
 
 def disconnect():
@@ -51,7 +55,7 @@ def eponch(r,d,e1,e2):
   return (r,d)
 
 def update_time():
-   global t,ta
+   global t,ta,hh,mm,ss,y,m,d
    ut=datetime.utcnow()
    lt=datetime.now()
    y=ut.year
@@ -85,6 +89,7 @@ def get_altitude():
 
 def get_ra():
   global ra_slewing,ra,ra0,ta,counter_ra0,ta0
+  global t,ta,hh,mm,ss,y,m,d
 #rektaskension ajonopeudet
   rn1=1.0/3600.0 # hidas nopeus
   rn2=60.0/3600.0 # keskinopeus
@@ -92,9 +97,9 @@ def get_ra():
   update_time()
 #  print("ra counter=",arduino.getcounter_ra(),"counter0=",counter_ra0,"ta=",ta)
   ra=ra0-(arduino.getcounter_ra()-counter_ra0)*counterstep_ra+(ta-ta0)
-  if ra<0:
+  while ra<0:
     ra=ra+24
-  if ra>24:
+  while ra>24:
     ra=ra-24
   suunta=0
   nopeus=0
@@ -130,12 +135,13 @@ def get_ra():
     suuntamerkki=">"
     for i in range(nopeus):
       suuntamerkit=suuntamerkit+suuntamerkki
-  message="ra: {} {}".format(hms(ra),suuntamerkit)
+  message="{}{:<3} {:02n}{:02n}{:02n}".format(hhmmss(ra),suuntamerkit,y-2000,m,d)
   lcd_message(message,1)
   return ra
 
 def get_de():
   global de_slewing,de,de0
+  global t,ta,hh,mm,ss,y,m,d
  # deklinaation ajonopeudet
   dn1=1.0/60.0 # hidas nopeus
   dn2=10.0/60.0 # keskinopeus
@@ -143,6 +149,7 @@ def get_de():
   de=de0+(arduino.getcounter_de()-counter_de0)*counterstep_de
   suunta=0
   nopeus=0
+  update_time()
   if de_slewing:
     delta=target_de-de
     if delta<0:
@@ -170,7 +177,7 @@ def get_de():
     suuntamerkki=">"
     for i in range(nopeus):
       suuntamerkit=suuntamerkit+suuntamerkki
-  message="dec:  {} {}".format(sam(de),suuntamerkit)
+  message=" {}{:<3} {:02n}{:02n}{:02n}".format(saamm(de),suuntamerkit,hh,mm,ss)
   lcd_message(message,2)
   return de
 
@@ -220,6 +227,21 @@ def hms(h):
         sss="0"+sss
     return hhs+" "+mms+" "+sss
 
+def hhmmss(h):
+    hh=math.floor(h)
+    mm=math.floor((h-hh)*60.0)
+    ss=math.floor((h-hh-mm/60.0)*3600.0)
+    hhs=str(hh)
+    if(hh<10):
+        hhs="0"+hhs
+    mms=str(mm)
+    if(mm<10):
+        mms="0"+mms
+    sss=str(ss)
+    if(ss<10):
+        sss="0"+sss
+    return hhs+mms+sss
+
 def sam(d):
     s="+"
     if d<0:
@@ -235,9 +257,25 @@ def sam(d):
         mms="0"+mms
     return s+dds+" "+mms
 
+def saamm(d):
+    s="+"
+    if d<0:
+       d=-d
+       s="-"
+    dd=math.floor(d)
+    mm=math.floor((d-dd)*60.0)
+    dds=str(dd)
+    if dd<10:
+        dds="0"+dds
+    mms=str(mm)
+    if mm<10:
+        mms="0"+mms
+    return s+dds+mms
+
 def lcd_message(s,l):
 #  print("lastmessage", l, lastmessage[l])
-  if lastmessage[l]!=s:
+  if lcd:
+    if lastmessage[l]!=s:
       lastmessage[l]=s
       lcd.message(s, l)
   

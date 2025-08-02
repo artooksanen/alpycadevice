@@ -174,9 +174,9 @@ class connected:
              if connected_clients>1:
                connected_clients=connected_clients-1
              else:
-              DevConnected = False ### CONNECT OR DISCONNECT THE DEVICE ###
-              connected_clients=0
-              rade.disconnect()
+#              DevConnected = False ### CONNECT OR DISCONNECT THE DEVICE ###
+              connected_clients=1
+#              rade.disconnect()
             # --------------------------------------
             resp.text = MethodResponse(req).json
             print("PUT connected out: DevConnected:",DevConnected, "clients:",connected_clients)
@@ -242,9 +242,9 @@ class disconnect:
               if connected_clients>1:
                 connected_clients=connected_clients-1
               else:
-               connected_clients=0
-               DevConnected=False
-               rade.disconnect()
+               connected_clients=1
+               #DevConnected=False
+               #rade.disconnect()
             print("PUT disconnect() out: DevConnected:",DevConnected,"clients:",connected_clients)
             # ---------------------------
             resp.text = MethodResponse(req).json
