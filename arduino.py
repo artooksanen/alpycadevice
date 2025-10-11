@@ -14,7 +14,7 @@ import sys
 #lrwxrwxrwx 1 root root 13 Jul 16 17:27 platform-3f980000.usb-usb-0:1.3:1.0 -> ../../ttyACM0
 
 
-serial_port = '/dev/ttyACM1'
+serial_port = '/dev/ttyACM0'
 baud_rate = 9600
 connection=False
 
@@ -31,8 +31,8 @@ de_counter=0
 
 
 
-def setspeed_ra(suunta,nopeus):
-  print("setspeed_ra:",suunta,nopeus)
+def setspeed_de(suunta,nopeus):
+  print("setspeed_de:",suunta,nopeus)
   if(nopeus==0):
     ser.write("xn=0\n".encode())
   if(nopeus==1):
@@ -43,14 +43,14 @@ def setspeed_ra(suunta,nopeus):
     ser.write("xn=3\n".encode())
 
   if(suunta==1):
-    ser.write("xs=1\n".encode())
+    ser.write("xs=-1\n".encode())
   if(suunta==0):
     ser.write("xs=0\n".encode())
   if(suunta==-1):
-    ser.write("xs=-1\n".encode())
+    ser.write("xs=1\n".encode())
 
-def setspeed_de(suunta,nopeus):
-  print("setspeed_de:",suunta,nopeus)
+def setspeed_ra(suunta,nopeus):
+  print("setspeed_ra:",suunta,nopeus)
   if(nopeus==0):
     ser.write("yn=0\n".encode())
   if(nopeus==1):
@@ -61,19 +61,19 @@ def setspeed_de(suunta,nopeus):
     ser.write("yn=3\n".encode())
 
   if(suunta==1):
-    ser.write("ys=1\n".encode())
+    ser.write("ys=-1\n".encode())
   if(suunta==0):
     ser.write("ys=0\n".encode())
   if(suunta==-1):
-    ser.write("ys=-1\n".encode())
+    ser.write("ys=1\n".encode())
 
 def getcounter_ra():
   global ra_counter,ra_lasttime
-#  print("getcounter_ra():")
-  ser.write('?x\n'.encode())
+#  print("getcounter_de():")
+  ser.write('?y\n'.encode())
   data = ser.read_until(b'\n').decode()
 #  print("getcounter_ra data:",data[:-1])
-  if data.startswith("x="):
+  if data.startswith("y="):
     x=data[:-1].split('=')[1].strip()
 
 #    print("getcounter_ra: x=",x)
@@ -92,10 +92,10 @@ def getcounter_ra():
 def getcounter_de():
   global de_counter,de_lasttime
 #  print("getcounter_de():")
-  ser.write('?y\n'.encode())
+  ser.write('?x\n'.encode())
   data = ser.read_until(b'\n').decode()
 #  print("getcounter_de data:",data[:-1])
-  if data.startswith("y="):
+  if data.startswith("x="):
     x=data[:-1].split('=')[1].strip()
 
 #    print("getcounter_de: x=",x)
@@ -147,24 +147,35 @@ if __name__ == "__main__":
     c=getcounter_de()
     print("initial de counter:",c)
 
-    c=getcounter_ra()
-    print("ra counter:",c)
-    c=getcounter_de()
-    print("de counter:",c)
 
-#    disconnect()
-
-#    exit()
-
-    print("slewing 10 seconds - speed 1")
-    setspeed_ra(1,1)
-    setspeed_de(1,1)
+    print("slewing Y+ 10 seconds - speed 2")
+    setspeed_ra(0,0)
+    setspeed_de(1,2)
     time.sleep(10)
 
+    setspeed_ra(0,0)
+    setspeed_de(0,0)
+
     c=getcounter_ra()
     print("ra counter:",c)
     c=getcounter_de()
     print("de counter:",c)
+
+    print("slewing Y- 10 seconds - speed 2")
+    setspeed_ra(0,0)
+    setspeed_de(-1,2)
+    time.sleep(10)
+
+    setspeed_ra(0,0)
+    setspeed_de(0,0)
+
+    c=getcounter_ra()
+    print("ra counter:",c)
+    c=getcounter_de()
+    print("de counter:",c)
+
+    disconnect()
+    exit()
 
     print("slewing 10 seconds - speed 2")
     setspeed_ra(1,2)

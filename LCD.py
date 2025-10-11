@@ -80,3 +80,8 @@ class LCD:
     def clear(self):
         # clear LCD display
         self.lcd_byte(0x01, self.LCD_CMD)
+
+if __name__ == "__main__":
+  
+ lcd = LCD(2, 0x3f, True)  # Using Raspberry Pi revision 2 and above, I2C address 0x3f, backlight enabled
+ lcd.message("HelloWorld!")

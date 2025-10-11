@@ -18,8 +18,9 @@ target_de=0.0
 ra_slewing=False
 de_slewing=False
 #2.086 0.2317
-counterstep_ra=(1.0)/3600.0    # tuntia
-counterstep_de=(10.0)/3600.0       # astetta
+#counterstep_ra=(0.4758)/3600.0       # tuntia
+counterstep_ra=(0.47977)/3600.0       # tuntia 20.9.2025
+counterstep_de=(4.3200)/3600.0       # astetta
 ra0=0
 de0=0
 # Initialize the LCD with specific parameters: Raspberry Pi revision, I2C address, and backlight status
@@ -32,14 +33,28 @@ lastmessage=["","",""]
 
 
 def connect():
-  global counter_ra0,counter_de0
-  print("rade.connect(): arduino.connect() ->")
-  arduino.connect()
-  print("rade.connect(): arduino.connect() <-")
-  print("rade.connect(): arduino.get_counters) ->")
-  counter_ra0=arduino.getcounter_ra()
-  counter_de0=arduino.getcounter_de()
-  print("rade.connect(): arduino.get_counters <-")
+  global counter_ra0,counter_de0,ra0,de0,ta0
+  if not arduino.connected():
+    print("rade.connect(): arduino.connect() ->")
+    arduino.connect()
+    print("rade.connect(): arduino.connect() <-")
+    print("rade.connect(): arduino.get_counters) ->")
+    counter_ra0=arduino.getcounter_ra()
+    counter_de0=arduino.getcounter_de()
+    print("rade.connect(): arduino.get_counters <-")
+    import json
+    try:
+      with open("telescope_position.json", "r") as jsonfile:
+        data = json.load(jsonfile)
+        print(data)
+        ra0=data["ra"]
+        de0=data["de"]
+        ta0=data["ta"]
+    except:
+        ra0=0.0
+        de0=0.0
+        ta0=0.0
+
 
 def disconnect():
   print("rade.disconnect()")
@@ -91,8 +106,8 @@ def get_ra():
   global ra_slewing,ra,ra0,ta,counter_ra0,ta0
   global t,ta,hh,mm,ss,y,m,d
 #rektaskension ajonopeudet
-  rn1=1.0/3600.0 # hidas nopeus
-  rn2=60.0/3600.0 # keskinopeus
+  rn1=20.0/3600.0 # hidas nopeus
+  rn2=120.0/3600.0 # keskinopeus
   rn3=600.0/3600.0 #nopea nopeus
   update_time()
 #  print("ra counter=",arduino.getcounter_ra(),"counter0=",counter_ra0,"ta=",ta)
@@ -188,12 +203,26 @@ def set_ra(r):
   update_time()
   ta0=ta
 #  print("set ra=",ra)
+  save_telescope_position()
+
+def save_telescope_position():
+  global ra0,de0,ta0
+  import json
+  data = {
+    "ra": ra0,
+    "de": de0,
+    "ta": ta0
+  }
+  json_str = json.dumps(data, indent=4)
+  with open("telescope_position.json", "w") as f:
+    f.write(json_str)
 
 def set_de(d):
   global de,de0,counter_de0
   counter_de0=arduino.getcounter_de()
   de0=de=d
 #  print("set de=",de)
+  save_telescope_position()
 
 def slew(r,d):
   global target_ra,target_de,ra_slewing,de_slewing
@@ -278,4 +307,13 @@ def lcd_message(s,l):
     if lastmessage[l]!=s:
       lastmessage[l]=s
       lcd.message(s, l)
-  
+
+def getcounter_ra():
+  return arduino.getcounter_ra()  
+
+def getcounter_de():
+  return arduino.getcounter_de()  
+
+if __name__ == '__main__':
+  save_telescope_position()
+

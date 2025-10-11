@@ -225,6 +225,8 @@ class devicestate:
             val.append(StateValue('Tracking', not rade.is_slewing()))
             val.append(StateValue('UTCDate', rade.utcdate()))
             val.append(StateValue('TimeStamp', rade.utcdate()))
+            val.append(StateValue('RACounter', rade.getcounter_ra()))
+            val.append(StateValue('DecCounter', rade.getcounter_de()))
             # ----------------------
             resp.text = PropertyResponse(val, req).json
         except Exception as ex:
@@ -914,7 +916,8 @@ class equatorialsystem:
         
         try:
             # ----------------------
-            val = 2  #J2000 equator/equinox
+            val = 1  #Topocentric coordinates.
+            #val = 2  #J2000 equator/equinox
             # ----------------------
             resp.text = PropertyResponse(val, req).json
         except Exception as ex:
