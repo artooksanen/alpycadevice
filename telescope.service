@@ -1,0 +1,12 @@
+[Unit] 
+Description=AlpycaTelescopeServer 
+
+[Service] 
+Restart=on-failure
+WorkingDirectory=/home/oksanen/AlpycaDevice/device/
+ExecStart=gunicorn -b 0.0.0.0:5555 -k gthread --threads 1 --timeout 0 app:falc_app
+ExecReload=/bin/kill -HUP $MAINPID 
+KillSignal=SIGINT 
+
+[Install] 
+WantedBy=multi-user.target
